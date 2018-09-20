@@ -8,8 +8,8 @@ import sys
 def print_in_table(dataset, names):
 	header_arr1 = [""]
 	header_arr2 = [""]
-	tableInfo = [["Count"], ["Min"], ["Max"]]
-	clusterInfo = [["Count"]]
+	tableInfo = [["Count"], ["Mean"], ["Min"], ["Max"]]
+	clusterInfo = [["Count"], ["Mean"]]
 
 
 	for i, row in enumerate(dataset):
@@ -22,10 +22,11 @@ def print_in_table(dataset, names):
 			header_arr1.append("Feature #" + str(len(header_arr1)))
 
 			tableInfo[0].append(len(list(filter(None.__ne__, row))))
-			tableInfo[1].append(min(list(filter(None.__ne__, row))))
-			tableInfo[2].append(max(list(filter(None.__ne__, row))))
+			tableInfo[1].append(get_mean(list(filter(None.__ne__, row))))
+			tableInfo[2].append(min(list(filter(None.__ne__, row))))
+			tableInfo[3].append(max(list(filter(None.__ne__, row))))
 
-	print("\033[1m\033[32mNon-cluster feature (float):\033[0m")
+	print("\033[1m\033[32mNumeric feature (float):\033[0m")
 	print(tabulate.tabulate(tableInfo, headers=header_arr1, tablefmt='orgtbl'))
 	print("\n\033[1m\033[32mCluster feature:\033[0m")
 	print(tabulate.tabulate(clusterInfo, headers=header_arr2, tablefmt='orgtbl'))
@@ -45,9 +46,9 @@ if __name__ == "__main__":
 		raw_data = raw_data[1:]
 		dataset = transform_data(raw_data)
 
+		print_in_table(dataset, names)
+
 	except OSError as error:
 		print("\033[1m\033[31mError: cannot open file ->", error, "\033[0m")
 	except Exception as err:
 		print("\033[1m\033[31mUnknown error:", err, "\033[0m")
-
-	print_in_table(dataset, names)

@@ -64,6 +64,13 @@ def validate(file_name):
 
 	return dataset
 
+def get_mean(feature_arr):
+	
+	if (len(feature_arr) == 0):
+		return 0
+
+	return sum(feature_arr) / float(len(feature_arr))
+
 def transform_data(raw):
 	new_data = []
 
