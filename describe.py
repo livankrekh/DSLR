@@ -1,86 +1,50 @@
 #!./venv/bin/python3
 
+from src.tools import *
+
 import tabulate
-
-import csv
 import sys
-import re
-
-def feature_type_is_number(feature_arr):
-	count_float = len(list(filter(lambda e: isinstance(e, float), feature_arr)))
-
-	return len(feature_arr) / 2 < count_float
-
-def get_feature(dataset, i):
-	feature_arr = []
-
-	if (len(dataset[0]) - 1 < i):
-		return []
-
-	for row in dataset:
-		feature_arr.append(row[i])
-
-	feature_arr = list(filter(None, feature_arr))
-
-	return feature_arr
-
-def validate(file_name):
-	dataset = []
-	regex = re.compile('\-?\d+\.?\d*')
-
-	with open(file_name) as csvfile:
-		reader = csv.reader(csvfile)
-		for row in reader:
-			tmp = []
-			for elem in row:
-				if (regex.match(elem)):
-					tmp.append(float(regex.match(elem).group(0)))
-				else:
-					tmp.append(elem)
-			dataset.append(tmp)
-
-	return dataset
 
 def print_in_table(dataset, names):
-	intBased = []
-	header_arr = [""]
-	tableInfo = []
-	properties = ["Count", "Min", "Max"]
-
-	for i in range(1, len(dataset[0])):
-		if (feature_type_is_number(get_feature(dataset, i))):
-			intBased.append(i)
-			header_arr.append(names[i])
-
-	for prop in properties:
-		tmp = [prop]
-		
-		for index in intBased:
-			if (prop == "Count"):
-				tmp.append(len(get_feature(dataset, index)))
-			if (prop == "Min"):
-				tmp.append(min(get_feature(dataset, index)))
-			if (prop == "Max"):
-				tmp.append(max(get_feature(dataset, index)))
-
-		tableInfo.append(tmp)
-
-	print(tabulate.tabulate(tableInfo, headers=header_arr, tablefmt='orgtbl'))
+	header_arr1 = [""]
+	header_arr2 = [""]
+	tableInfo = [["Count"], ["Min"], ["Max"]]
+	clusterInfo = [["Count"]]
 
 
+	for i, row in enumerate(dataset):
+		if (len(non_repeatable(row)) < len(row) / 2):
+			header_arr2.append("Feature #" + str(len(header_arr2)))
+
+			clusterInfo[0].append(len(list(filter(None.__ne__, row))))
+
+		elif (feature_type(row) == 0):
+			header_arr1.append("Feature #" + str(len(header_arr1)))
+
+			tableInfo[0].append(len(list(filter(None.__ne__, row))))
+			tableInfo[1].append(min(list(filter(None.__ne__, row))))
+			tableInfo[2].append(max(list(filter(None.__ne__, row))))
+
+	print("\033[1m\033[32mNon-cluster feature (float):\033[0m")
+	print(tabulate.tabulate(tableInfo, headers=header_arr1, tablefmt='orgtbl'))
+	print("\n\033[1m\033[32mCluster feature:\033[0m")
+	print(tabulate.tabulate(clusterInfo, headers=header_arr2, tablefmt='orgtbl'))
 
 if __name__ == "__main__":
-	dataset = []
+	raw_data = []
 	names = []
+	dataset = []
 
 	if (len(sys.argv) < 2):
 		print("Error: no input file!")
 		exit()
 
 	try:
-		dataset = validate(sys.argv[1])
-		names = dataset[:1][0]
-		dataset = dataset[1:]
+		raw_data = validate(sys.argv[1])
+		names = raw_data[:1][0]
+		raw_data = raw_data[1:]
+		dataset = transform_data(raw_data)
+
 	except OSError as error:
 		print("\033[1m\033[31mError: cannot open file ->", error, "\033[0m")
 	except Exception as err:
