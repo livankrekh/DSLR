@@ -44,6 +44,11 @@ def non_repeatable(feature_arr):
 
 	return non
 
+def is_cluster_feature(feature_arr):
+	non = non_repeatable(feature_arr)
+
+	return len(non) < len(feature_arr) / 2
+
 def validate(file_name):
 	dataset = []
 	regex_date = re.compile('\d+\-\d+\-?\d*')
@@ -65,11 +70,27 @@ def validate(file_name):
 	return dataset
 
 def get_mean(feature_arr):
+	averege = sum(feature_arr) / float(len(feature_arr))
+	res = 0
 	
-	if (len(feature_arr) == 0):
-		return 0
+	for elem in feature_arr:
+		koff = abs(elem - averege)
 
-	return sum(feature_arr) / float(len(feature_arr))
+		if (koff < abs(res - averege)):
+			res = elem
+
+	return res
+
+def homogeneous(feature_arr):
+	averege = sum(feature_arr) / float(len(feature_arr))
+	S = 0
+
+	for elem in feature_arr:
+		S += (elem - averege) ** 2
+
+	S = (S / float(len(feature_arr))) ** 0.5
+
+	return S / averege
 
 def transform_data(raw):
 	new_data = []
