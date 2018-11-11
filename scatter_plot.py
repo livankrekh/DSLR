@@ -10,8 +10,7 @@ import sys
 
 from src.tools import *
 
-FEATURES2 = [2,3]
-FEATURES = [0,6]
+FEATURES = [2,3]
 
 if __name__ == "__main__":
 
