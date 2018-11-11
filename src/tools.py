@@ -1,3 +1,4 @@
+import numpy as np
 import datetime
 import csv
 import re
@@ -81,6 +82,9 @@ def get_mean(feature_arr):
 
 	return res
 
+def standart_homogeneous(feature_arr):
+	return homogeneous(feature_arr) ** 0.5
+
 def homogeneous(feature_arr):
 	averege = sum(feature_arr) / float(len(feature_arr))
 	S = 0
@@ -88,9 +92,45 @@ def homogeneous(feature_arr):
 	for elem in feature_arr:
 		S += (elem - averege) ** 2
 
-	S = (S / float(len(feature_arr))) ** 0.5
+	S = S / float(len(feature_arr))
 
-	return S / averege
+	return abs(S)
+
+def get_clusters(raw):
+	transposed = np.transpose(raw).tolist()
+	clusters_arr = []
+	names = []
+
+	for feature_arr in transposed:
+		non = non_repeatable(feature_arr)
+
+		if (len(non) < len(feature_arr) / 2):
+			names = non
+
+			for elem in feature_arr:
+				if (elem == None or elem not in non):
+					clusters_arr.append(None)
+				else:
+					clusters_arr.append(non.index(elem))
+
+			break
+
+	return clusters_arr, names
+
+
+def transform_data_by_homes(raw):
+	transformed = np.transpose(transform_data(raw)).tolist()
+	y, names = get_clusters(raw)
+	result = []
+
+	for _ in range(len(names)):
+		result += [[]]
+
+	for i, row in enumerate(transformed):
+		result[y[i]].append(row)
+
+	return result, names
+
 
 def transform_data(raw):
 	new_data = []
@@ -100,16 +140,7 @@ def transform_data(raw):
 		feature_arr = get_feature(raw, i)
 		non = non_repeatable(feature_arr)
 
-		if (len(non) < len(feature_arr) / 2):
-			for elem in feature_arr:
-				if (elem == None or elem not in non):
-					new_feature.append(None)
-				else:
-					new_feature.append(non.index(elem))
-
-			new_data.append(new_feature)
-
-		elif (feature_type(feature_arr) == 2):
+		if (feature_type(feature_arr) == 2):
 			now = datetime.datetime.now().date()
 
 			for elem in feature_arr:
