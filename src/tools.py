@@ -1,3 +1,4 @@
+import pandas as pd
 import numpy as np
 import datetime
 import csv
@@ -115,8 +116,7 @@ def get_clusters(raw):
 
 			break
 
-	return clusters_arr, names
-
+	return clusters_arr, names	
 
 def transform_data_by_homes(raw):
 	transformed = np.transpose(transform_data(raw)).tolist()
@@ -130,7 +130,6 @@ def transform_data_by_homes(raw):
 		result[y[i]].append(row)
 
 	return result, names
-
 
 def transform_data(raw):
 	new_data = []

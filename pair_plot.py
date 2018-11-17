@@ -4,13 +4,28 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+import pandas as pd
+import seaborn as sns
 import numpy as np
 import sys
 
 from src.tools import *
 
-FEATURES = [1,2,3,4]
+sns.set(style="ticks")
+
+FEATURES = [2,3,4,7]
+
+def show_pairplot(filename):
+	pd_data = pd.read_csv(filename)
+	names = pd_data.columns
+	pd_data = pd_data.drop(columns="Index")
+	pd_data = pd_data.drop(columns=names[2:6])
+
+	pd_data = pd_data.iloc[:, [0] + FEATURES]
+	pd_data = pd_data.dropna()
+
+	sns.pairplot(pd_data, hue="Hogwarts House")
+	plt.show()
 
 if __name__ == "__main__":
 
@@ -18,41 +33,13 @@ if __name__ == "__main__":
 		print("Error: no input file!")
 		exit()
 
-	raw_data = validate(sys.argv[1])
-	names = raw_data[:1][0][6:]
-	raw_data = raw_data[1:]
-	feature_names = ["Age"] + names
-	homes_data, homes = transform_data_by_homes(raw_data)
-
-	for i in range(len(homes_data)):
-		homes_data[i] = np.transpose(homes_data[i])
-
-		for j in range(len(homes_data[i])):
-			tmp_indexes = []
-
-			for k, elem in enumerate(homes_data[i][j]):
-				if (type(elem) is str) or (elem is None):
-					homes_data[i][j][k] = 0
-
-
-	fig, all_vis = plt.subplots(4, 4)
-
-	for i in range(len(FEATURES)):
-		for j in range(len(FEATURES)):
-			if (i == j):
-				all_vis[i][j].hist(homes_data[0][FEATURES[j]].tolist(), bins=25, alpha=0.5, histtype='bar', facecolor='green')
-				all_vis[i][j].hist(homes_data[1][FEATURES[j]].tolist(), bins=25, alpha=0.5, histtype='bar', facecolor='red')
-				all_vis[i][j].hist(homes_data[2][FEATURES[j]].tolist(), bins=25, alpha=0.5, histtype='bar', facecolor='blue')
-				all_vis[i][j].hist(homes_data[3][FEATURES[j]].tolist(), bins=25, alpha=0.5, histtype='bar', facecolor='yellow')
-			else:
-				all_vis[i][j].scatter(homes_data[0][FEATURES[i]], homes_data[0][FEATURES[j]], color="green", alpha=0.7, marker='o', label=homes[0])
-				all_vis[i][j].scatter(homes_data[1][FEATURES[i]], homes_data[1][FEATURES[j]], color="red" , alpha=0.7, marker='o', label=homes[1])
-				all_vis[i][j].scatter(homes_data[2][FEATURES[i]], homes_data[2][FEATURES[j]], color="blue" , alpha=0.7, marker='o', label=homes[2])
-				all_vis[i][j].scatter(homes_data[3][FEATURES[i]], homes_data[3][FEATURES[j]], color="yellow", alpha=0.7, marker='o', label=homes[3])
-				# all_vis[i][j].legend(loc='upper left')
-
-			all_vis[i][j].grid()
-
-
-	fig.tight_layout()
-	plt.show()
+	try:
+		show_pairplot(sys.argv[1])
+	except UnicodeDecodeError:
+		print("\033[1m\033[31mMatplolib bug: no mouse scrolling supporting for OSX!\033[0m")
+		exit()
+	except KeyboardInterrupt:
+		print("\033[1mBye, bye!\033[0m")
+		exit()
+	except Exception as err:
+		print("\033[1m\033[31mUnexpected error: incorrect csv input data! Details:", err, "\033[0m")

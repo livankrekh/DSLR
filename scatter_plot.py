@@ -10,15 +10,11 @@ import sys
 
 from src.tools import *
 
-FEATURES = [2,3]
+FEATURES = [2,4]
 
-if __name__ == "__main__":
+def show_scatterplot(filename):
 
-	if (len(sys.argv) < 2):
-		print("Error: no input file!")
-		exit()
-
-	raw_data = validate(sys.argv[1])
+	raw_data = validate(filename)
 	names = raw_data[:1][0][6:]
 	raw_data = raw_data[1:]
 	feature_names = ["Age"] + names
@@ -38,3 +34,20 @@ if __name__ == "__main__":
 	plt.legend(loc='upper left')
 
 	plt.show()
+
+if __name__ == "__main__":
+
+	if (len(sys.argv) < 2):
+		print("Error: no input file!")
+		exit()
+
+	try:
+		show_scatterplot(sys.argv[1])
+	except UnicodeDecodeError:
+		print("\033[1m\033[31mMatplolib bug: no mouse scrolling supporting for OSX!\033[0m")
+		exit()
+	except KeyboardInterrupt:
+		print("\033[1mBye, bye!\033[0m")
+		exit()
+	except Exception as err:
+		print("\033[1m\033[31mUnexpected error: incorrect csv input data! Details:", err, "\033[0m")
