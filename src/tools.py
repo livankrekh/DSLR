@@ -116,7 +116,7 @@ def get_clusters(raw):
 
 			break
 
-	return clusters_arr, names	
+	return clusters_arr, names
 
 def transform_data_by_homes(raw):
 	transformed = np.transpose(transform_data(raw)).tolist()
@@ -158,3 +158,4 @@ def transform_data(raw):
 			new_data.append(new_feature)
 
 	return new_data
+
