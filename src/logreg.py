@@ -1,6 +1,19 @@
 import numpy as np
 import math
 
+def separete_data(data):
+	train = []
+	test = []
+
+	for key, elem in enumerate(data):
+		tmp = np.transpose(data[key])
+
+		np.random.shuffle(tmp)
+		train.append(np.transpose(tmp[:int(len(tmp) * 0.7)]))
+		test.append(np.transpose(tmp[int(len(tmp) * 0.7):]))
+
+	return train, test
+
 def model_func(theta, data):
 	res = []
 	theta_x = []
@@ -47,11 +60,11 @@ def derivative_func(theta, pos_data, neg_data, theta_index):
 	return (1 / all_len) * res
 
 
-def logreg_one_model(pos_data, neg_data, alpha):
+def logreg_one_model(pos_data, neg_data, alpha, steps):
 	tmp_model = [0.0] * (len(pos_data[0]) + 1)
 	tmp_model = np.array(tmp_model)
 
-	for i in range(1000):
+	for i in range(steps):
 		print(i)
 		tmp = tmp_model[:]
 
@@ -81,7 +94,7 @@ def clearData(data, curr_cluster, feature_indexes):
 
 	return pos, neg
 
-def logreg_all(data_labeled, label_names, feature_indexes):
+def logreg_all(data_labeled, label_names, feature_indexes, alpha=0.05, steps=1000):
 	res_model = {}
 	pos_data = []
 	neg_data = []
@@ -90,6 +103,37 @@ def logreg_all(data_labeled, label_names, feature_indexes):
 
 		pos_data, neg_data = clearData(data_labeled, i, feature_indexes)
 
-		res_model[label_names[i]] = logreg_one_model(pos_data, neg_data, 0.05)
+		res_model[label_names[i]] = logreg_one_model(pos_data, neg_data, alpha, steps)
 
 	return res_model
+
+def check_values(model, elem, i):
+	vals = np.array(model[i])
+	res_sum = vals * (elem + [1])
+
+	return 1.0 / (1.0 + np.exp(res_sum * -1.0))
+
+def model_test(model, data, feature_indexes, homes):
+	res = 0
+	l = 0
+
+	for i in range(len(data)):
+		l += len(np.transpose(data[i]))
+
+	for i, cluster_data in enumerate(data):
+
+		pos_data, neg_data = clearData(data, i, feature_indexes)
+		pos_data = np.transpose(pos_data)
+
+		for elem in pos_data:
+			if (check_values(model, elem, homes[i]) >= 0.5):
+				res += 1
+
+		for cluster in neg_data:
+			for elem in np.transpose(cluster):
+				if (check_values(model, elem, homes[i]) < 0.5):
+					res += 1
+
+	return res / l
+
+
