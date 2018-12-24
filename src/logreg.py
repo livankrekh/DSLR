@@ -107,9 +107,9 @@ def logreg_all(data_labeled, label_names, feature_indexes, alpha=0.05, steps=100
 
 	return res_model
 
-def check_values(model, elem, i):
-	vals = np.array(model[i])
-	res_sum = vals * (elem + [1])
+def check_values(model, elem):
+	vals = np.array(model)
+	res_sum = sum(np.transpose(vals) * np.append(elem, [1]))
 
 	return 1.0 / (1.0 + np.exp(res_sum * -1.0))
 
@@ -117,21 +117,20 @@ def model_test(model, data, feature_indexes, homes):
 	res = 0
 	l = 0
 
-	for i in range(len(data)):
-		l += len(np.transpose(data[i]))
-
 	for i, cluster_data in enumerate(data):
 
 		pos_data, neg_data = clearData(data, i, feature_indexes)
 		pos_data = np.transpose(pos_data)
 
 		for elem in pos_data:
-			if (check_values(model, elem, homes[i]) >= 0.5):
+			l += 1
+			if (check_values(model[homes[i]], elem) >= 0.5):
 				res += 1
 
 		for cluster in neg_data:
 			for elem in np.transpose(cluster):
-				if (check_values(model, elem, homes[i]) < 0.5):
+				l += 1
+				if (check_values(model[homes[i]], elem) < 0.5):
 					res += 1
 
 	return res / l
