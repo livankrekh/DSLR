@@ -23,9 +23,9 @@ if __name__ == "__main__":
 
 	train, test = separete_data(homes_data)
 
-	# model = logreg_all(homes_data, homes, [2,3,4,7], 0.1, 100)
-
-	print(model_test({1:[1,1,1,1,1], 2: [1,1,1,1,1], 3: [1,1,1,1,1], 4: [1,1,1,1,1]}, test, [2,3,4,7], [1,2,3,4]))
+	model = logreg_all(train, homes, [2,3,4,7], 0.0001, 100)
+	print("Success ->", model_test(model, test, [2,3,4,7], homes))
+	plot_data(model, homes_data, [4,7], homes)
 
 	if not os.path.exists("./model"):
 		os.mkdir("model")

@@ -1,3 +1,7 @@
+import matplotlib
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
 import numpy as np
 import math
 
@@ -13,6 +17,12 @@ def separete_data(data):
 		test.append(np.transpose(tmp[int(len(tmp) * 0.7):]))
 
 	return train, test
+
+def model_func2(theta, data):
+	data = np.append(data, 1)
+	X = sum(theta * np.transpose(data)) * -1
+
+	return (1 / (1 + np.exp(X)))
 
 def model_func(theta, data):
 	res = []
@@ -34,6 +44,24 @@ def model_func(theta, data):
 		res.append(1 / (1 + np.exp(tmp * -1)))
 
 	return np.array(res)
+
+def loss_func(model, pos_data, neg_data):
+	all_len = len(np.transpose(pos_data[0]))
+	res = 0.0
+
+	for elem in np.transpose(pos_data[0]):
+		h = model_func2(model, elem)
+		res += np.log(h)
+
+	for cluster in neg_data:
+		tmp = np.transpose(cluster)
+		all_len += len(tmp)
+
+		for elem in neg_data:
+			h = model_func2(model, elem)
+			res += np.log(1 - h)
+
+	return (res / all_len) * -1
 
 def derivative_func(theta, pos_data, neg_data, theta_index):
 	h_theta = model_func(theta, pos_data + neg_data)
@@ -69,7 +97,10 @@ def logreg_one_model(pos_data, neg_data, alpha, steps):
 		tmp = tmp_model[:]
 
 		for i, theta in enumerate(tmp_model):
-			tmp_model[i] = theta - alpha * derivative_func(tmp, pos_data, neg_data, i)
+			der = derivative_func(tmp, pos_data, neg_data, i)
+			tmp[i] = theta - alpha * der
+
+		tmp_model = tmp
 
 	return tmp_model
 
@@ -133,6 +164,26 @@ def model_test(model, data, feature_indexes, homes):
 				if (check_values(model[homes[i]], elem) < 0.5):
 					res += 1
 
+	print("Pos ->", res)
+	print("Neg ->", l - res)
+	print("All ->", l)
+
 	return res / l
 
+def plot_data(model, data, FEATURES, homes):
+	plt.scatter(data[0][FEATURES[0]], data[0][FEATURES[1]], color="green", alpha=0.7, marker='o', label=homes[0])
+	plt.scatter(data[1][FEATURES[0]], data[1][FEATURES[1]], color="red" , alpha=0.7, marker='o', label=homes[1])
+	plt.scatter(data[2][FEATURES[0]], data[2][FEATURES[1]], color="blue" , alpha=0.7, marker='o', label=homes[2])
+	plt.scatter(data[3][FEATURES[0]], data[3][FEATURES[1]], color="yellow", alpha=0.7, marker='o', label=homes[3])
 
+	# for elem in model.values():
+	# 	x = np.arange(-10, 10)
+	# 	y = (x * elem[2]) + (x * elem[3])
+	# 	plt.plot(x, y)
+
+	plt.xlabel(str(FEATURES[0]) + " in range feature")
+	plt.ylabel(str(FEATURES[1]) + " in range feature")
+
+	plt.legend(loc='upper left')
+
+	plt.show()
