@@ -5,6 +5,38 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+
+class DSLR_Logreg(object):
+	def __init__(self, X, y_name, iter_n=1000, alpha=0.01):
+		self.iter = iter_n
+		self.alpha = alpha
+		self.X = X
+		self.y = X[y_name]
+		self.model = []
+
+	def get_X(self):
+		return self.X
+
+	def choose_features(self, feature_arr):
+		if (len(feature_arr) < 1):
+			return
+		if (type(feature_arr[0]) is str):
+			X = X[feature_arr]
+		else:
+			X = X[X.columns[feature_arr]]
+
+	def _sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+
+	def scaling(self):
+		for i in range(len(X.columns)):
+			try:
+				X[i] = (X[i] - X.mean()) / X.std()
+			except:
+				continue
+
+''' Logistic regression realizyng without pandas and any frameworks'''
+
 def separete_data(data):
 	train = []
 	test = []
@@ -70,6 +102,8 @@ def derivative_func(theta, pos_data, neg_data, theta_index):
 	h_i = 0
 
 	for i, X in enumerate(np.transpose(pos_data[0])):
+		if (0 in X):
+			continue
 		X = np.append(X, 1)
 
 		res += (h_theta[h_i] - 1) * X[theta_index]
@@ -99,6 +133,7 @@ def logreg_one_model(pos_data, neg_data, alpha, steps):
 		for i, theta in enumerate(tmp_model):
 			der = derivative_func(tmp, pos_data, neg_data, i)
 			tmp[i] = theta - alpha * der
+			print("LOSS ->", loss_func(theta, pos_data, neg_data))
 
 		tmp_model = tmp
 
@@ -169,6 +204,13 @@ def model_test(model, data, feature_indexes, homes):
 	print("All ->", l)
 
 	return res / l
+
+def data_scaling(data):
+
+	for i, arr in enumerate(data):
+		data[i] = np.nan_to_num(preprocessing.scale(arr))
+
+	return data
 
 def plot_data(model, data, FEATURES, homes):
 	plt.scatter(data[0][FEATURES[0]], data[0][FEATURES[1]], color="green", alpha=0.7, marker='o', label=homes[0])
