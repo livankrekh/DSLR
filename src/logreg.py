@@ -1,18 +1,18 @@
-import matplotlib
-matplotlib.use('TkAgg')
-
-import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
 import numpy as np
 import math
 
 
 class DSLR_Logreg(object):
 	def __init__(self, X, y_name, iter_n=1000, alpha=0.01):
+		X = X.dropna()
+
 		self.iter = iter_n
 		self.alpha = alpha
-		self.X = X
-		self.y = X[y_name]
-		self.model = []
+		self.X, self.X_test = train_test_split(X, test_size=0.3)
+		self.y = self.X[y_name]
+		self.y_test = self.X_test[y_name]
+		self.model = {}
 
 	def get_X(self):
 		return self.X
@@ -21,211 +21,74 @@ class DSLR_Logreg(object):
 		if (len(feature_arr) < 1):
 			return
 		if (type(feature_arr[0]) is str):
-			X = X[feature_arr]
+			self.X = self.X[feature_arr]
+			self.X_test = self.X_test[feature_arr]
 		else:
-			X = X[X.columns[feature_arr]]
+			self.X = self.X[X.columns[feature_arr]]
+			self.X_test = self.X_test[X_test.columns[feature_arr]]
 
-	def _sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
+	def sigmoid(self, x):
+		return 1 / (1 + np.exp(-x))
 
 	def scaling(self):
-		for i in range(len(X.columns)):
+		for i in range(len(self.X.columns)):
 			try:
-				X[i] = (X[i] - X.mean()) / X.std()
+				self.X[i] = (self.X[i] - self.X.mean()) / self.X.std()
+				self.X_test[i] = (self.X_test[i] - self.X_test.mean()) / self.X_test.std()
 			except:
 				continue
 
-''' Logistic regression realizyng without pandas and any frameworks'''
+	def fit(self):
+		theta0 = np.ones(self.X.shape[0])
+		self.X.insert(loc=0, column="X0", value=theta0, allow_duplicates=True)
+		all_i = len(np.unique(self.y)) * self.iter
 
-def separete_data(data):
-	train = []
-	test = []
+		for i, house_name in enumerate(np.unique(self.y)):
+			labeled_y = np.where(self.y == house_name, 1, 0)
+			tmp = np.ones(self.X.shape[1])
 
-	for key, elem in enumerate(data):
-		tmp = np.transpose(data[key])
+			for j in range(self.iter):
+				printProgressBar(i * self.iter + j, all_i, 'Training progress')
+				new_X = self.X.dot(tmp)
+				pressicion = labeled_y - self.sigmoid(new_X)
+				grad = np.dot(self.X.T, pressicion)
+				tmp += self.alpha * grad
 
-		np.random.shuffle(tmp)
-		train.append(np.transpose(tmp[:int(len(tmp) * 0.7)]))
-		test.append(np.transpose(tmp[int(len(tmp) * 0.7):]))
+			self.model[house_name] = tmp
 
-	return train, test
+		printProgressBar(all_i, all_i, 'Training progress')
 
-def model_func2(theta, data):
-	data = np.append(data, 1)
-	X = sum(theta * np.transpose(data)) * -1
+		return self.model
 
-	return (1 / (1 + np.exp(X)))
+	def test(self):
+		X0 = np.ones(self.X_test.shape[0])
+		self.X_test.insert(loc=0, column="X0", value=X0, allow_duplicates=True)
+		res = 0
 
-def model_func(theta, data):
-	res = []
-	theta_x = []
+		for house in np.unique(self.y):
+			labeled_y = np.where(self.y_test == house, 1, 0)
+			theta = self.model[house]
 
-	for cluster in data:
-		cluster = np.vstack([cluster, [1] * len(cluster[0])])
-		if (theta_x == []):
-			theta_x = np.transpose(cluster) * theta
-		else:
-			theta_x = np.append(theta_x, np.transpose(cluster) * theta, axis=0)
+			new_y = self.sigmoid(self.X_test.dot(theta))
+			new_y = np.where(new_y >= 0.5, 1, 0)
+			loss = (labeled_y - new_y) ** 2
+			res += sum(loss)
 
-	for i, x in enumerate(theta_x):
-		tmp = 0.0
+		all_len = len(self.X_test) * len(np.unique(self.y))
 
-		for j, elem in enumerate(x):
-			tmp += elem * theta[j]
+		print("All ->", all_len)
+		print("Pos ->", all_len - res)
+		print("Neg ->", res)
+		print("Success -> ", int(((all_len - res) / all_len) * 100), "%", sep='')
 
-		res.append(1 / (1 + np.exp(tmp * -1)))
+		return (all_len - res) / all_len
 
-	return np.array(res)
+''' Logistic regression implementation without pandas and any frameworks '''
 
-def loss_func(model, pos_data, neg_data):
-	all_len = len(np.transpose(pos_data[0]))
-	res = 0.0
-
-	for elem in np.transpose(pos_data[0]):
-		h = model_func2(model, elem)
-		res += np.log(h)
-
-	for cluster in neg_data:
-		tmp = np.transpose(cluster)
-		all_len += len(tmp)
-
-		for elem in neg_data:
-			h = model_func2(model, elem)
-			res += np.log(1 - h)
-
-	return (res / all_len) * -1
-
-def derivative_func(theta, pos_data, neg_data, theta_index):
-	h_theta = model_func(theta, pos_data + neg_data)
-	all_len = len(np.transpose(pos_data[0]))
-	res = 0.0
-	h_i = 0
-
-	for i, X in enumerate(np.transpose(pos_data[0])):
-		if (0 in X):
-			continue
-		X = np.append(X, 1)
-
-		res += (h_theta[h_i] - 1) * X[theta_index]
-		h_i += 1
-
-	for cluster in neg_data:
-		tmp = np.transpose(cluster)
-		all_len += len(tmp)
-
-		for i, X in enumerate(tmp):
-			X = np.append(X, 1)
-
-			res += (h_theta[h_i] - 0) * X[theta_index]
-			h_i += 1
-
-	return (1 / all_len) * res
-
-
-def logreg_one_model(pos_data, neg_data, alpha, steps):
-	tmp_model = [0.0] * (len(pos_data[0]) + 1)
-	tmp_model = np.array(tmp_model)
-
-	for i in range(steps):
-		print(i)
-		tmp = tmp_model[:]
-
-		for i, theta in enumerate(tmp_model):
-			der = derivative_func(tmp, pos_data, neg_data, i)
-			tmp[i] = theta - alpha * der
-			print("LOSS ->", loss_func(theta, pos_data, neg_data))
-
-		tmp_model = tmp
-
-	return tmp_model
-
-
-def clearData(data, curr_cluster, feature_indexes):
-	pos = []
-	neg = []
-
-	for i, cluster in enumerate(data):
-		tmp = []
-
-		for j, feature in enumerate(cluster):
-			if j in feature_indexes:
-				feature[feature == None] = 0.0
-				tmp.append(np.array(feature))
-
-		tmp = np.array(tmp)
-		if (i == curr_cluster):
-			pos.append(tmp)
-		else:
-			neg.append(tmp)
-
-	return pos, neg
-
-def logreg_all(data_labeled, label_names, feature_indexes, alpha=0.05, steps=1000):
-	res_model = {}
-	pos_data = []
-	neg_data = []
-
-	for i, cluster_data in enumerate(data_labeled):
-
-		pos_data, neg_data = clearData(data_labeled, i, feature_indexes)
-
-		res_model[label_names[i]] = logreg_one_model(pos_data, neg_data, alpha, steps)
-
-	return res_model
-
-def check_values(model, elem):
-	vals = np.array(model)
-	res_sum = sum(np.transpose(vals) * np.append(elem, [1]))
-
-	return 1.0 / (1.0 + np.exp(res_sum * -1.0))
-
-def model_test(model, data, feature_indexes, homes):
-	res = 0
-	l = 0
-
-	for i, cluster_data in enumerate(data):
-
-		pos_data, neg_data = clearData(data, i, feature_indexes)
-		pos_data = np.transpose(pos_data)
-
-		for elem in pos_data:
-			l += 1
-			if (check_values(model[homes[i]], elem) >= 0.5):
-				res += 1
-
-		for cluster in neg_data:
-			for elem in np.transpose(cluster):
-				l += 1
-				if (check_values(model[homes[i]], elem) < 0.5):
-					res += 1
-
-	print("Pos ->", res)
-	print("Neg ->", l - res)
-	print("All ->", l)
-
-	return res / l
-
-def data_scaling(data):
-
-	for i, arr in enumerate(data):
-		data[i] = np.nan_to_num(preprocessing.scale(arr))
-
-	return data
-
-def plot_data(model, data, FEATURES, homes):
-	plt.scatter(data[0][FEATURES[0]], data[0][FEATURES[1]], color="green", alpha=0.7, marker='o', label=homes[0])
-	plt.scatter(data[1][FEATURES[0]], data[1][FEATURES[1]], color="red" , alpha=0.7, marker='o', label=homes[1])
-	plt.scatter(data[2][FEATURES[0]], data[2][FEATURES[1]], color="blue" , alpha=0.7, marker='o', label=homes[2])
-	plt.scatter(data[3][FEATURES[0]], data[3][FEATURES[1]], color="yellow", alpha=0.7, marker='o', label=homes[3])
-
-	# for elem in model.values():
-	# 	x = np.arange(-10, 10)
-	# 	y = (x * elem[2]) + (x * elem[3])
-	# 	plt.plot(x, y)
-
-	plt.xlabel(str(FEATURES[0]) + " in range feature")
-	plt.ylabel(str(FEATURES[1]) + " in range feature")
-
-	plt.legend(loc='upper left')
-
-	plt.show()
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
+    if iteration == total:
+        print()

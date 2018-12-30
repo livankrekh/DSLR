@@ -15,3 +15,8 @@ if __name__ == "__main__":
 
 	raw = pd.read_csv(sys.argv[1], index_col = "Index")
 	
+	fitter = DSLR_Logreg(raw, "Hogwarts House", 30000, 0.0001)
+	fitter.choose_features(["Astronomy", "Herbology", "Defense Against the Dark Arts", "Ancient Runes"])
+	fitter.scaling()
+	model = fitter.fit()
+	fitter.test()
