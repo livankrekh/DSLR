@@ -20,3 +20,6 @@ if __name__ == "__main__":
 	fitter.scaling()
 	model = fitter.fit()
 	fitter.test()
+	if (not os.path.exists("model/") or not os.path.isdir("model/")):
+		os.mkdir("model")
+	fitter.save("model/model")
