@@ -83,6 +83,11 @@ def get_mean(feature_arr):
 
 	return res
 
+def quantiles(feature_arr, quantile):
+	sort = sorted(feature_arr)
+
+	return sort[int((len(sort) - 1) * quantile)]
+
 def standart_homogeneous(feature_arr):
 	return homogeneous(feature_arr) ** 0.5
 

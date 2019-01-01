@@ -21,9 +21,9 @@ def print_in_table(dataset, names):
 			tableInfo[3].append(homogeneous(clear_data))
 			tableInfo[4].append(min(clear_data))
 			tableInfo[5].append(max(clear_data))
-			tableInfo[6].append((sum(clear_data) / len(clear_data)) / 4)
-			tableInfo[7].append(sum(clear_data) / len(clear_data))
-			tableInfo[8].append(((sum(clear_data) / len(clear_data)) / 4) * 3)
+			tableInfo[6].append(quantiles(clear_data, 0.25))
+			tableInfo[7].append(quantiles(clear_data, 0.5))
+			tableInfo[8].append(quantiles(clear_data, 0.75))
 
 	print("\033[1m\033[32mNumeric feature (float):\033[0m")
 	print(tabulate.tabulate(tableInfo, headers=header_arr1, tablefmt='orgtbl'))
@@ -38,6 +38,10 @@ if __name__ == "__main__":
 		exit()
 
 	try:
+
+		l = pd.read_csv(sys.argv[1], index_col = "Index")
+		print(l.describe())
+
 		raw_data = validate(sys.argv[1])
 		names = raw_data[:1][0][6:]
 		raw_data = raw_data[1:]
