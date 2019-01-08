@@ -7,7 +7,7 @@ import sys
 
 def print_in_table(dataset, names):
 	header_arr1 = [""]
-	tableInfo = [["Count"], ["Mean"], ["Std"], ["Dispersion"], ["Min"], ["Max"], ["25%"], ["50%"], ["75%"]]
+	tableInfo = [["Count"], ["Mean"], ["Std"], ["Dispersion"], ["Min"], ["Max"], ["25%"], ["50%"], ["75%"], ["Variation (%)"]]
 
 	for i, row in enumerate(dataset):
 
@@ -24,6 +24,8 @@ def print_in_table(dataset, names):
 			tableInfo[6].append(quantiles(clear_data, 0.25))
 			tableInfo[7].append(quantiles(clear_data, 0.5))
 			tableInfo[8].append(quantiles(clear_data, 0.75))
+			tableInfo[9].append(standart_homogeneous(clear_data) / get_mean(clear_data) * 100)
+
 
 	print("\033[1m\033[32mNumeric feature (float):\033[0m")
 	print(tabulate.tabulate(tableInfo, headers=header_arr1, tablefmt='orgtbl'))
@@ -38,9 +40,6 @@ if __name__ == "__main__":
 		exit()
 
 	try:
-
-		l = pd.read_csv(sys.argv[1], index_col = "Index")
-		print(l.describe())
 
 		raw_data = validate(sys.argv[1])
 		names = raw_data[:1][0][6:]

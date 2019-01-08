@@ -1,3 +1,6 @@
+''' Logistic regression implementation without pandas and any frameworks '''
+import numpy as np
+
 def separete_data(data):
 	train = []
 	test = []

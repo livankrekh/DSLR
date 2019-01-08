@@ -10,7 +10,7 @@ import sys
 
 from src.tools import *
 
-FEATURES = [2,4]
+FEATURES = [2,3]
 
 def show_scatterplot(filename):
 
