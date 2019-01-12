@@ -13,7 +13,7 @@ from src.tools import *
 
 sns.set(style="ticks")
 
-FEATURES = [2,3,4,7]
+FEATURES = [2,3,4,7,12]
 
 def show_pairplot(filename):
 	pd_data = pd.read_csv(filename)

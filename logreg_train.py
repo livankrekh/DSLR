@@ -44,7 +44,7 @@ if __name__ == "__main__":
 	raw = pd.read_csv(args["file"], index_col = "Index")
 	
 	fitter = DSLR_Logreg(raw, "Hogwarts House", batch = (batch if batch != -1 else 0.1), iter_n = (i if i >= 1 else 30000), alpha = (alpha if alpha != -1 else 0.0001), loss = args["loss"])
-	fitter.choose_features(["Astronomy", "Herbology", "Defense Against the Dark Arts", "Ancient Runes"])
+	fitter.choose_features(["Astronomy", "Herbology", "Defense Against the Dark Arts", "Ancient Runes", "Charms"])
 	fitter.scaling()
 
 	if args["stohastic"]:

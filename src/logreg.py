@@ -9,7 +9,7 @@ import math
 
 class DSLR_Logreg(object):
 	def __init__(self, X, y_name, iter_n=30000, alpha=0.0001, batch=0.1, loss=False):
-		X = X.fillna(method='ffill')
+		X = X.fillna(method="ffill")
 
 		self.iter = iter_n
 		self.alpha = alpha
@@ -192,6 +192,10 @@ class DSLR_Logreg(object):
 		np.save(path, self.model)
 		print("\033[1m\033[32mModel saved to '" + path + ".npy'\033[0m")
 
+
+""" Class for predict """
+
+
 class DSLR_Predict(object):
 	def __init__(self, X, model, y_name):
 		self.X = X
@@ -208,14 +212,14 @@ class DSLR_Predict(object):
 		else:
 			self.X = self.X[X.columns[feature_arr]]
 
-		self.X = self.X.fillna(method='ffill')
+		self.X = self.X.fillna(method="ffill")
 
 	def scaling(self):
 		for i in self.X.columns:
 			try:
 				self.X[i] = (self.X[i] - self.X[i].mean()) / self.X[i].std()
 			except:
-				continue
+				continue	
 
 	def predict(self):
 		theta0 = np.ones(self.X.shape[0])

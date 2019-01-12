@@ -18,7 +18,7 @@ if __name__ == "__main__":
 	model = dict(model.tolist())
 
 	predict = DSLR_Predict(test, model, "Hogwarts House")
-	predict.choose_features(["Astronomy", "Herbology", "Defense Against the Dark Arts", "Ancient Runes"])
+	predict.choose_features(["Astronomy", "Herbology", "Defense Against the Dark Arts", "Ancient Runes", "Charms"])
 	predict.scaling()
 	predicts = predict.predict()
 
